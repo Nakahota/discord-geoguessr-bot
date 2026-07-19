@@ -19,6 +19,7 @@ client.once('clientReady', () => {
 });
 
 client.on('messageCreate', async msg => {
+    if (msg.author.bot) return;
     if (msg.content === "こんにちは") {
         msg.reply({ files: ['./SpaceCat.jpg']});
     }
@@ -28,12 +29,20 @@ client.on('messageCreate', async msg => {
 client.on('interactionCreate', async (interaction) => {
     // スラッシュコマンドのみ処理する
     if (!interaction.isChatInputCommand()) return;
+
     // /ephemeralだった場合、非公開メッセージを送信する
     if (interaction.commandName === "ephemeral") {
-            await interaction.reply({
-              content: "非公開になってますか？",
-              flags: MessageFlags.Ephemeral,
-            });
+
+        const message = interaction.options.getString("message", true);
+
+        await interaction.reply({
+            content: `あなたが送信した文言は「${message}」` ,
+            flags: MessageFlags.Ephemeral,
+        });
+    }
+    // /helloだった場合、挨拶を返します。
+    if (interaction.commandName === "hello") {
+        await interaction.reply("こんにちは");
     }
 });
 

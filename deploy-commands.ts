@@ -5,6 +5,17 @@ const commands = [
   new SlashCommandBuilder()
     .setName("ephemeral")
     .setDescription("非公開メッセージを送信")
+    .addStringOption(option =>
+      option
+        .setName("message")
+        .setDescription("送りたい内容")
+        .setRequired(true)
+    )
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName("hello")
+    .setDescription("挨拶します")
     .toJSON(),
 ];
 
