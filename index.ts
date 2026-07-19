@@ -1,5 +1,6 @@
 import config from "./config.json"
 import { MessageFlags,Client, GatewayIntentBits } from "discord.js";
+import db from "./client"
 
 // Botのクライアントを作成
 const client = new Client({
@@ -11,11 +12,18 @@ const client = new Client({
 });
 
 // 起動時の処理
-client.once('clientReady', () => {
+client.once('clientReady', async () => {
     if (client.user === null) {
         return;
     }
     console.log(`${client.user.tag} としてログインしました`);
+
+    try {
+        await db.connect();
+        console.log("PostgreSQL connected");
+    } catch(error) {
+        console.log("PostgreSQL connectError")
+    }
 });
 
 client.on('messageCreate', async msg => {
@@ -36,7 +44,7 @@ client.on('interactionCreate', async (interaction) => {
         const message = interaction.options.getString("message", true);
 
         await interaction.reply({
-            content: `あなたが送信した文言は「${message}」` ,
+            content: `あなたが送信した文言は「${message}」`,
             flags: MessageFlags.Ephemeral,
         });
     }
