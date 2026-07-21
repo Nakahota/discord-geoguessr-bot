@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id          Int        @id @default(autoincrement())
+  prefecture  String
+  city        String
+  latitude    Float
+  longitude   Float
+
+  questions   Question[]
+}
+
+model Image {
+  id         Int       @id @default(autoincrement())
+  url        String
+  createdAt  DateTime  @default(now())
+
+  questions  Question[]
+}
+
+model Question {
+  id          Int       @id @default(autoincrement())
+
+  locationId  Int
+  imageId     Int
+
+  createdAt   DateTime  @default(now())
+
+  location    Location  @relation(fields: [locationId], references: [id])
+  image       Image     @relation(fields: [imageId], references: [id])
+}

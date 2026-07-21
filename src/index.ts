@@ -1,6 +1,6 @@
-import config from "./config.json"
-import { MessageFlags,Client, GatewayIntentBits } from "discord.js";
-import db from "./client"
+import config from "../config.json"
+import { MessageFlags, Client, GatewayIntentBits } from "discord.js";
+import prisma from "./client"
 
 // Botのクライアントを作成
 const client = new Client({
@@ -19,17 +19,10 @@ client.once('clientReady', async () => {
     console.log(`${client.user.tag} としてログインしました`);
 
     try {
-        await db.connect();
+        await prisma.$connect();
         console.log("PostgreSQL connected");
     } catch(error) {
         console.log("PostgreSQL connectError")
-    }
-});
-
-client.on('messageCreate', async msg => {
-    if (msg.author.bot) return;
-    if (msg.content === "こんにちは") {
-        msg.reply({ files: ['./SpaceCat.jpg']});
     }
 });
 
