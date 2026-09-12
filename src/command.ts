@@ -1,17 +1,42 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import prisma from "./client";
 
-// 問題登録処理
-export async function registerQuestion(interaction: ChatInputCommandInteraction): Promise<void> {
+type RegisterQuestionParams = {
+    prefecture: string;
+    city: string;
+    latitude: number;
+    longitude: number;
+    imageUrl: string;
+};
 
-    const prefecture = interaction.options.getString("prefecture", true);
-    const city = interaction.options.getString("city", true);
-    const latitude = interaction.options.getNumber("latitude", true);
-    const longitude = interaction.options.getNumber("longitude", true);
-    const imageUrl = interaction.options.getString("image_url", true);
+// 問題登録処理
+export async function registerQuestion(interaction: ChatInputCommandInteraction) {
+    const prefecture = interaction.options.getString(
+        "prefecture",
+        true
+    );
+
+    const city = interaction.options.getString(
+        "city",
+        true
+    );
+
+    const latitude = interaction.options.getNumber(
+        "latitude",
+        true
+    );
+
+    const longitude = interaction.options.getNumber(
+        "longitude",
+        true
+    );
+
+    const image = interaction.options.getAttachment(
+        "image",
+        true
+    );
 
     try {
-
         const question = await prisma.$transaction(async (tx) => {
 
             const location = await tx.location.create({
@@ -23,41 +48,30 @@ export async function registerQuestion(interaction: ChatInputCommandInteraction)
                 }
             });
 
-            const image = await tx.image.create({
+            const imageRecord = await tx.image.create({
                 data: {
-                    url: imageUrl
+                    url: image.url
                 }
             });
 
             return await tx.question.create({
                 data: {
                     locationId: location.id,
-                    imageId: image.id
+                    imageId: imageRecord.id
                 }
             });
-
         });
 
-        await interaction.reply({
-            content: `問題(ID: ${question.id})を登録しました。`
-        });
+        return question;
 
     } catch (error) {
-
         console.error(error);
-
-        await interaction.reply({
-            content: "問題登録に失敗しました。",
-            ephemeral: true
-        });
-
+        throw error;
     }
 }
 
 // 問題送信処理
-export async function sendQuestion(
-    interaction: ChatInputCommandInteraction
-): Promise<void> {
+export async function sendQuestion(interaction: ChatInputCommandInteraction): Promise<void> {
 
     try {
 

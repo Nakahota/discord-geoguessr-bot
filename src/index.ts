@@ -1,6 +1,7 @@
 import config from "../config.json"
 import { MessageFlags, Client, GatewayIntentBits } from "discord.js";
-import prisma from "./client"
+import prisma from "./client";
+import { registerQuestion } from "./command";
 
 // Botのクライアントを作成
 const client = new Client({
@@ -41,6 +42,35 @@ client.on('interactionCreate', async (interaction) => {
             flags: MessageFlags.Ephemeral,
         });
     }
+
+    // /registerコマンドを受け取ったら問題登録処理を行う
+    if (interaction.commandName === "register") {
+
+            console.log(`問題登録処理を開始します`);
+
+        try {
+            const question = await registerQuestion(interaction);
+
+            await interaction.reply({
+                content: `問題(ID: ${question.id})を登録しました。`,
+                flags: MessageFlags.Ephemeral,
+            });
+
+                    console.log(`問題登録処理に成功しました`);
+
+        } catch (error) {
+            console.error(error);
+
+            await interaction.reply({
+                content: "問題登録に失敗しました。",
+                flags: MessageFlags.Ephemeral,
+            });
+
+            console.log(`問題登録処理に失敗しました`);
+            
+        }
+    }
+
     // /helloだった場合、挨拶を返します。
     if (interaction.commandName === "hello") {
         await interaction.reply("こんにちは");
