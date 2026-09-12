@@ -2,6 +2,7 @@ import config from "../config.json"
 import { MessageFlags, Client, GatewayIntentBits } from "discord.js";
 import prisma from "./client";
 import { registerQuestion } from "./command";
+import { sendQuestion } from "./command";
 
 // Botのクライアントを作成
 const client = new Client({
@@ -45,9 +46,6 @@ client.on('interactionCreate', async (interaction) => {
 
     // /registerコマンドを受け取ったら問題登録処理を行う
     if (interaction.commandName === "register") {
-
-            console.log(`問題登録処理を開始します`);
-
         try {
             const question = await registerQuestion(interaction);
 
@@ -56,8 +54,6 @@ client.on('interactionCreate', async (interaction) => {
                 flags: MessageFlags.Ephemeral,
             });
 
-                    console.log(`問題登録処理に成功しました`);
-
         } catch (error) {
             console.error(error);
 
@@ -65,10 +61,12 @@ client.on('interactionCreate', async (interaction) => {
                 content: "問題登録に失敗しました。",
                 flags: MessageFlags.Ephemeral,
             });
-
-            console.log(`問題登録処理に失敗しました`);
-            
         }
+    }
+
+    // /questionコマンドを受け取ったら問題送信処理を行う
+    if (interaction.commandName === "question") {
+        await sendQuestion(interaction);
     }
 
     // /helloだった場合、挨拶を返します。

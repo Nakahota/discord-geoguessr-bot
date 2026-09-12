@@ -1,13 +1,5 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import prisma from "./client";
-
-type RegisterQuestionParams = {
-    prefecture: string;
-    city: string;
-    latitude: number;
-    longitude: number;
-    imageUrl: string;
-};
 
 // 問題登録処理
 export async function registerQuestion(interaction: ChatInputCommandInteraction) {
@@ -37,6 +29,9 @@ export async function registerQuestion(interaction: ChatInputCommandInteraction)
     );
 
     try {
+
+        console.log(`問題登録処理を行います`);
+
         const question = await prisma.$transaction(async (tx) => {
 
             const location = await tx.location.create({
@@ -62,11 +57,16 @@ export async function registerQuestion(interaction: ChatInputCommandInteraction)
             });
         });
 
+        console.log(`問題登録処理が完了しました`);
+
         return question;
 
     } catch (error) {
+
+        console.log(`問題登録処理に失敗しました`);
         console.error(error);
         throw error;
+
     }
 }
 
@@ -75,39 +75,52 @@ export async function sendQuestion(interaction: ChatInputCommandInteraction): Pr
 
     try {
 
-        const question = await prisma.question.findFirst({
-            include: {
-                location: true,
-                image: true
-            },
-            orderBy: {
-                id: "asc"
-            }
+        console.log(`問題送信処理を行います`);
+
+        // 3秒以内にInteractionを受け付けないと無効エラーが返ってしまうため、処理中をDiscordに送信
+        await interaction.deferReply();
+
+        const count = await prisma.question.count();
+
+        if (count === 0) {
+        await interaction.editReply({
+            content: "問題が登録されていません。",
         });
 
-        if (!question) {
-
-            await interaction.reply({
-                content: "問題が登録されていません。"
-            });
-
-            return;
+        console.log(`問題が登録されていないため、問題送信処理に失敗しました`);
+        
+        return;
         }
 
-        await interaction.reply({
-            content:
-`## 問題
+        const randomIndex = Math.floor(Math.random() * count);
 
-画像: ${question.image.url}`
+        const questions = await prisma.question.findMany({
+        skip: randomIndex,
+        take: 1,
+        include: {
+            location: true,
+            image: true,
+        },
         });
+
+        const question = questions[0];
+
+        await interaction.editReply({
+            content: "青看板の場所を当ててください",
+            files: [
+                question.image.url
+            ],
+        });
+
+        console.log(`問題送信処理に成功しました`);
 
     } catch (error) {
 
+        console.log(`問題登録処理に失敗しました`);
         console.error(error);
 
-        await interaction.reply({
+        await interaction.editReply({
             content: "問題取得に失敗しました。",
-            ephemeral: true
         });
 
     }
