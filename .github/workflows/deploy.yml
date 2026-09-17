@@ -1,0 +1,44 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Oracle Cloud
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/discord-geoguessr-bot
+
+            echo "Pull latest code"
+            git pull origin master
+
+            echo "Build Docker image"
+            docker build -t discord-geoguessr-bot .
+
+            echo "Run Prisma migration"
+            docker run --rm \
+              --network discord-geoguessr-bot_default \
+              --env-file .env \
+              discord-geoguessr-bot \
+              npx prisma migrate deploy
+
+            echo "Stop old bot container"
+            docker rm -f discord-geoguessr-bot 2>/dev/null || true
+
+            echo "Start new bot container"
+            docker run -d \
+              --name discord-geoguessr-bot \
+              --network discord-geoguessr-bot_default \
+              --env-file .env \
+              --restart unless-stopped \
+              discord-geoguessr-bot
