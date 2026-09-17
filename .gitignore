@@ -1,3 +1,6 @@
 node_modules/
 config.json
 /src/generated/prisma
+.env
+.env.*
+!.env.example

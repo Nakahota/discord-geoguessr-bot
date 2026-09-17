@@ -1,8 +1,13 @@
-import config from "../config.json"
 import { MessageFlags, Client, GatewayIntentBits } from "discord.js";
 import prisma from "./client";
 import { registerQuestion } from "./command";
 import { sendQuestion } from "./command";
+
+const token = process.env.DISCORD_TOKEN;
+
+if (!token) {
+    throw new Error("DISCORD_TOKEN is not set");
+}
 
 // Botのクライアントを作成
 const client = new Client({
@@ -24,7 +29,7 @@ client.once('clientReady', async () => {
         await prisma.$connect();
         console.log("PostgreSQL connected");
     } catch(error) {
-        console.log("PostgreSQL connectError")
+        console.log("PostgreSQL connectError", error);
     }
 });
 
@@ -76,4 +81,4 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 // 以下にトークンの貼り付け
-client.login(config.token);
+client.login(token);
